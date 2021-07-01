@@ -209,6 +209,7 @@ func contextForChannel(parentCh <-chan struct{}) (context.Context, context.Cance
 func main() {
 	opts := &config.Ops{}
 	parser := flags.NewParser(opts, flags.Default)
+	logrus.Infof("Parsing Flags")
 	if _, err := parser.Parse(); err != nil {
 		// If the error was from the parser, then we can simply return
 		// as Parse() prints the error already
@@ -217,6 +218,7 @@ func main() {
 		}
 		logrus.Fatalf("Error parsing flags: %v", err)
 	}
+	logrus.Infof("Taint Key: %s",opts.NodeTaint)
 
 	notReadyTaint.Key = opts.NodeTaint
 
@@ -226,6 +228,7 @@ func main() {
 	if err != nil {
 		logrus.Fatalf("Failed to create k8s clientset: %v", err)
 	}
+	logrus.Infof("Got Client Set")
 
 	// Handle termination
 	stopCh := make(chan struct{})
@@ -244,6 +247,7 @@ func main() {
 			delete(dsList, ds.Name)
 			return
 		}
+		logrus.Infof("DsHandler Ops %s",ops)
 
 		switch ops {
 		case "add":
@@ -257,6 +261,8 @@ func main() {
 
 	podHandler := func(pod *core_v1.Pod, node *core_v1.Node, podStopChan chan struct{}) {
 		// check if the node has required taint, if not, ignore this node
+		logrus.Infof("podHandler ")
+
 		if !taintutils.TaintExists(node.Spec.Taints, notReadyTaint) {
 			delete(podStore, node.Name)
 			podStopChan <- struct{}{}
@@ -274,6 +280,8 @@ func main() {
 		if !podReady {
 			return
 		}
+
+		logrus.Infof("podHandler ")
 
 		// check if all daemonset pods are running
 		finished, err := checkDSStatus(node, *opts)
