@@ -21,3 +21,4 @@ FROM alpine:3.7
 RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 COPY --from=0 /go/src/github.com/pavan-tri/nodetaint/nodetaint /root/nodetaint
+ENTRYPOINT [ "/root/nodetaint" ]
